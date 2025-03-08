@@ -12,16 +12,30 @@ function News(props) {
     const fetchNews = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}`
-        );
+        const response = await axios.get('https://newsapi.org/v2/top-headlines', {
+          params: {
+            country: props.country,
+            category: props.category,
+            apiKey: props.apiKey
+          },
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (response.status !== 200) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+
         setArticles(response.data.articles);
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching news:', error);
+      } finally {
         setLoading(false);
       }
     };
+
     fetchNews();
   }, [props.country, props.category, props.apiKey]);
 
@@ -31,9 +45,11 @@ function News(props) {
 
   return (
     <div className="news-container">
-      {articles.map((article) => (
-        <NewsItem key={article.url} article={article} />
-      ))}
+      {articles.length > 0 ? (
+        articles.map((article) => <NewsItem key={article.url} article={article} />)
+      ) : (
+        <p>No news available.</p>
+      )}
     </div>
   );
 }
